@@ -104,8 +104,17 @@ def process_show(show_name, show_day, main_page_soup):
             write_qr_code_url_to_file("QR code not found", show_name, date_time_str)
             if attempt == 2:
                 print(f"Failed to find QR Code URL after {attempt + 1} attempts for {show_name}\n")
+def banner():
+    font """     _____              _       
+  __|___  |_ _  ___ ___| |_   _ 
+ / _ \ / / _` |/ _ \_  / | | | |
+|  __// / (_| |  __// /| | |_| |
+ \___/_/ \__, |\___/___|_|\__, |
+         |___/            |___/ """
+    print(font)
 
 def main():
+    banner()
     # Take inputs from the command line
     show_names = sys.argv[1].split(',')
     show_time_value = int(sys.argv[2])
