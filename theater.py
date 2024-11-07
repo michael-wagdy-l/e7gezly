@@ -105,12 +105,15 @@ def process_show(show_name, show_day, main_page_soup):
             if attempt == 2:
                 print(f"Failed to find QR Code URL after {attempt + 1} attempts for {show_name}\n")
 def banner():
-    font """     _____              _       
+    font= """     _____              _       
   __|___  |_ _  ___ ___| |_   _ 
  / _ \ / / _` |/ _ \_  / | | | |
 |  __// / (_| |  __// /| | |_| |
  \___/_/ \__, |\___/___|_|\__, |
-         |___/            |___/ """
+         |___/            |___/ 
+         By Michael Wagdy©
+         
+       \n  """
     print(font)
 
 def main():
