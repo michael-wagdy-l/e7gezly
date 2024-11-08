@@ -12,8 +12,17 @@ This script automates the booking process for shows in the Egyptian National The
 
 ## How Does It Work?
 
-1. **Requirements**: Ensure you have a Python environment set up.
-2. **Running the Script**: Use the following command to run the script:
+1. **Requirements**:
+   - **1-** Ensure you have a Python environment set up.
+   - **2-** install beautifulsoup4 package, which is used for parsing HTML and XML documents.
+    ```
+    pip install beautifulsoup4
+     ```
+    - **3-** install requests library, which is a popular HTTP library for making requests.
+   ```
+     pip install requests
+     ``` 
+3. **Running the Script**: Use the following command to run the script:
 
    ```bash
    python theater.py  "<show_name_1>, <show_name_2>" <day_number>
