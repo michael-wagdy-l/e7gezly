@@ -16,20 +16,21 @@ This script automates the booking process for shows in the Egyptian National The
 2. **Running the Script**: Use the following command to run the script:
 
    ```bash
-   python theater.py <day_number> "<show_name_1>, <show_name_2>"
+   python theater.py  "<show_name_1>, <show_name_2>" <day_number>
 
 ### Input Details
 
-- The first input (`<day_number>`) is a number from **1 to 7**:
+- The first input is a comma-separated list of show names you want to book. If you have multiple shows, enclose the names in quotes and separate them by commas. You only need to provide one keyword from each show's name, not the entire title. 
+- The second input (`<day_number>`) is a number from **1 to 7**:
   - **1** represents **Sunday**
   - **2** represents **Monday**
   - …and so on up to **7** for **Saturday**.
 
-- The second input is a comma-separated list of show names you want to book. If you have multiple shows, enclose the names in quotes and separate them by commas. You only need to provide one keyword from each show's name, not the entire title.
+
 ### Example Usage
 
   ```bash
-python theater.py 1 "Hamlet, Macbeth"
+python theater.py  "Hamlet, Macbeth" 1
 ```
 This command will book shows with keywords "Hamlet" and "Macbeth" on Sunday.
 ### Script Behavior
@@ -37,7 +38,7 @@ This command will book shows with keywords "Hamlet" and "Macbeth" on Sunday.
 - The script will attempt to book each show **up to three times**. If it does not find the show on the first try, it will try two more times before stopping.
 - If a show exists and has available seats, the script will save the link to the QR code in a text file named `qr_code_info.txt`.
 
-### Automating the Process
+## Automating the Process
 
 To automate the process and run the script at a specific time, follow these steps:
 
