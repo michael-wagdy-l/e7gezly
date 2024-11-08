@@ -37,7 +37,19 @@ This command will book shows with keywords "Hamlet" and "Macbeth" on Sunday.
 - The script will attempt to book each show **up to three times**. If it does not find the show on the first try, it will try two more times before stopping.
 - If a show exists and has available seats, the script will save the link to the QR code in a text file named `qr_code_info.txt`.
 
+### Automating the Process
 
+To automate the process and run the script at a specific time, follow these steps:
 
+1. Open the `run_once_at_time.sh` file.
+2. Edit the file to set your desired time and input parameters.
+3. The script will execute at the specified time.
+
+This can be done on any environment that supports Python, including Android phones. To run the script on an Android device:
+- Download **Termux**.
+- Install **Python** within Termux.
+- Run the bash script as explained, and it will run in the background at the specified time.
+
+![Example Image]()
 
 
