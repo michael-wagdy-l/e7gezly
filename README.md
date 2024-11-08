@@ -50,6 +50,7 @@ This can be done on any environment that supports Python, including Android phon
 - Install **Python** within Termux.
 - Run the bash script as explained, and it will run in the background at the specified time.
 
-![Example Image]()
+![Example Image](https://github.com/michael-wagdy-l/e7gezly/blob/main/android%20example.jpg)
+note: You can modify the booking parameters, such as your name, directly within the script code.
 
 
