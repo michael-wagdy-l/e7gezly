@@ -59,6 +59,15 @@ This can be done on any environment that supports Python, including Android phon
 - Download **Termux**.
 - Install **Python** within Termux.
 - Run the bash script as explained, and it will run in the background at the specified time.
+- Schedule the job by making the bash script executable 
+```
+chmod +x run_once_at_time.sh
+```
+- Run the job in the background using this command 
+```
+ nohup ./run_once_at_time.sh &
+```
+- Check the output in nohup.out in the same folder
 
 ![Example Image](https://github.com/michael-wagdy-l/e7gezly/blob/main/android%20example.jpg)
 note: You can modify the booking parameters, such as your name, directly within the script code.
