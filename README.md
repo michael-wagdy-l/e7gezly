@@ -68,6 +68,9 @@ chmod +x run_once_at_time.sh
  nohup ./run_once_at_time.sh &
 ```
 - Check the output in nohup.out in the same folder
+  ```
+  cat nohup.out
+  ```
 
 ![Example Image](https://github.com/michael-wagdy-l/e7gezly/blob/main/android%20example.jpg)
 note: You can modify the booking parameters, such as your name, directly within the script code.
