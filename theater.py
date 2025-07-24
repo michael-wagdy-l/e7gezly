@@ -1,6 +1,8 @@
 import sys
+import time
 from bs4 import BeautifulSoup
 import requests
+import base64
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 
@@ -20,19 +22,34 @@ DAYS_OF_WEEK = {
     7: ["السبت", "سبت", "السب", "سبت"]
 }
 
-def fetch_page(url, method='GET', data=None):
-    """Fetches a page using the specified method and returns the response."""
-    try:
-        if method == 'POST':
-            data = data.encode('utf-8')
-            response = session.post(url, headers={'Content-Type': 'application/x-www-form-urlencoded'}, data=data)
-        else:
-            response = session.get(url)
-        response.encoding = 'utf-8'
-        return response
-    except Exception as e:
-        print(f"Request failed: {e}")
-        return None
+
+def fetch_page(url, method='GET', data=None, retries=3, delay=1):
+    """Fetches a page using the specified method with retry logic."""
+    for attempt in range(retries):
+        try:
+            if method == 'POST':
+                if isinstance(data, str):
+                	data = data.encode('utf-8')
+                response = session.post(
+                    url,
+                    headers={'Content-Type': 'application/x-www-form-urlencoded'},
+                    data=data,
+                    timeout=10)
+            else:
+                print("+++++Getting main page++++")
+                response = session.get(url, timeout=10)
+
+            response.encoding = 'utf-8'
+            return response
+
+        except Exception as e:
+            print(f"[fetch_page] Attempt {attempt + 1} failed for {url}: {e}")
+            if attempt < retries - 1:
+                time.sleep(delay)  # Wait before retrying
+            else:
+                print(f"[fetch_page] Giving up after {retries} attempts.\n")
+
+    return None  # If all attempts fail
 
 def find_option_value(soup, target_texts):
     """Finds and returns the value of the option containing any of the target texts."""
@@ -59,63 +76,82 @@ def write_qr_code_url_to_file(qr_code_url, show_name, date_time_str):
     except Exception as e:
         print(f"Failed to write to file: {e}")
 
+
 def process_show(show_name, show_day, main_page_soup):
     """Processes the logic for a single show name, with retry logic for QR code not found."""
     for attempt in range(3):
-        print(f"Attempt {attempt + 1} for {show_name}")
+        try:
+            print(f"[{show_name}] Attempt {attempt + 1}")
 
-        # Reuse the main page soup
-        offer_id = find_option_value(main_page_soup, [show_name])
-        if not offer_id:
-            print(f"Offer option not found for {show_name}")
-            continue
+            # Find offer ID
+            offer_id = find_option_value(main_page_soup, [show_name])
+            if not offer_id:
+                print(f"[{show_name}] Offer option not found.")
+                time.sleep(1)
+                continue
 
-        print(f"Offer ID for {show_name}: {offer_id}")
+            print(f"[{show_name}] Offer ID: {offer_id}")
 
-        # Fetch showtime and parse HTML
-        showtime_response = fetch_page(f"{BASE_URL}/index/getoffertime", method='POST', data=f'offer_id={offer_id}')
-        soup = BeautifulSoup(showtime_response.text, 'html.parser')
+            # Fetch showtime HTML
+            showtime_response = fetch_page(
+                f"{BASE_URL}/index/getoffertime",
+                method='POST',
+                data=f'offer_id={offer_id}'
+            )
 
-        # Get showtime ID
-        offerstime_id = find_option_value(soup, show_day)
-        if not offerstime_id:
-            print(f"Showtime option not found for {show_name}")
-            continue
+            if not showtime_response:
+                print(f"[{show_name}] Failed to fetch showtime page.")
+                time.sleep(1)
+                continue
 
-        print(f"Showtime ID for {show_name}: {offerstime_id}")
+            soup = BeautifulSoup(showtime_response.text, 'html.parser')
 
-        # Fetch QR code page and parse HTML
-        qr_code_response = fetch_page(
-            f"{BASE_URL}/index/offers",
-            method='POST',
-            data=f'name=Michael&phone=01227205558&offerstime_id={offerstime_id}&offer_id={offer_id}&submit=حجز'
-        )
-        soup = BeautifulSoup(qr_code_response.text, 'html.parser')
-        qr_code_url = get_qr_code_url(soup)
+            # Find showtime ID
+            offerstime_id = find_option_value(soup, show_day)
+            if not offerstime_id:
+                print(f"[{show_name}] Showtime option not found.")
+                time.sleep(1)
+                continue
 
-        # Write QR code URL to file
-        date_time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        if qr_code_url:
-            print(f"QR Code URL for {show_name} found on attempt {attempt + 1}: {qr_code_url}")
-            write_qr_code_url_to_file(qr_code_url, show_name, date_time_str)
-            break
-        else:
-            print(f"QR Code URL not found on attempt {attempt + 1} for {show_name}")
-            write_qr_code_url_to_file("QR code not found", show_name, date_time_str)
-            if attempt == 2:
-                print(f"Failed to find QR Code URL after {attempt + 1} attempts for {show_name}\n")
+            print(f"[{show_name}] Showtime ID: {offerstime_id}")
+
+            # Fetch QR code HTML
+            qr_code_response = fetch_page(
+                f"{BASE_URL}/index/offers",
+                method='POST',
+                data=f'name=Michael&phone=01227205558&offerstime_id={offerstime_id}&offer_id={offer_id}&submit=حجز'
+            )
+
+            if not qr_code_response:
+                print(f"[{show_name}] QR code request failed.")
+                time.sleep(1)
+                continue
+
+            soup = BeautifulSoup(qr_code_response.text, 'html.parser')
+            qr_code_url = get_qr_code_url(soup)
+            date_time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            # Success
+            if qr_code_url:
+                print(f"[{show_name}] QR Code URL found: {qr_code_url}")
+                write_qr_code_url_to_file(qr_code_url, show_name, date_time_str)
+                return  # Done
+            else:
+                print(f"[{show_name}] QR code not found.")
+                write_qr_code_url_to_file("QR code not found", show_name, date_time_str)
+                time.sleep(1)
+
+        except Exception as e:
+            print(f"[{show_name}] Unexpected error: {e}")
+            time.sleep(1)
+
+    print(f"[{show_name}] Failed after 3 attempts. Skipping.\n")
+
+
 def banner():
-    font= """     _____              _       
-  __|___  |_ _  ___ ___| |_   _ 
- / _ \ / / _` |/ _ \_  / | | | |
-|  __// / (_| |  __// /| | |_| |
- \___/_/ \__, |\___/___|_|\__, |
-         |___/            |___/ 
-         By Michael Wagdy©
-         
-       \n  """
+    encoded = b'ICAgICBfX19fXyAgICAgICAgICAgICAgXyAgICAgICANCiAgX198X19fICB8XyBfICBfX18gX19ffCB8XyAgIF8gDQogLyBfIFwgLyAvIF9gIHwvIF8gXF8gIC8gfCB8IHwgfA0KfCAgX18vLyAvIChffCB8ICBfXy8vIC98IHwgfF98IHwNCiBcX19fL18vIFxfXywgfFxfX18vX19ffF98XF9fLCB8DQogICAgICAgICB8X19fLyAgICAgICAgICAgIHxfX18vIA0KICAgICAgICAgQnkgTWljaGFlbCBXYWdkecKp'
+    font = base64.b64decode(encoded).decode('utf-8')
     print(font)
-
 def main():
     banner()
     # Take inputs from the command line
@@ -139,6 +175,7 @@ def main():
     with ThreadPoolExecutor() as executor:
         for show_name in show_names:
             executor.submit(process_show, show_name, show_day, main_page_soup)
+
 
 if __name__ == "__main__":
     main()
